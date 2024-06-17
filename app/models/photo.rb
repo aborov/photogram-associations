@@ -16,36 +16,47 @@ class Photo < ApplicationRecord
   validates(:poster, { :presence => true })
 
   # Association accessor methods to define:
-  
+
   ## Direct associations
 
   # Photo#poster: returns a row from the users table associated to this photo by the owner_id column
 
+  belongs_to(:poster,
+             class_name: "User",
+             foreign_key: "owner_id",
+             required: false)
+
   # Photo#comments: returns rows from the comments table associated to this photo by the photo_id column
 
+  has_many(:comments, foreign_key: "photo_id")
+
   # Photo#likes: returns rows from the likes table associated to this photo by the photo_id column
+
+  has_many(:likes, foreign_key: "photo_id")
 
   ## Indirect associations
 
   # Photo#fans: returns rows from the users table associated to this photo through its likes
 
-  def poster
-    my_owner_id = self.owner_id
+  has_many(:fans, through: :likes, source: :fan)
 
-    matching_users = User.where({ :id => my_owner_id })
+  # def poster
+  #   my_owner_id = self.owner_id
 
-    the_user = matching_users.at(0)
+  #   matching_users = User.where({ :id => my_owner_id })
 
-    return the_user
-  end
+  #   the_user = matching_users.at(0)
 
-  def comments
-    my_id = self.id
+  #   return the_user
+  # end
 
-    matching_comments = Comment.where({ :photo_id => self.id })
+  # def comments
+  #   my_id = self.id
 
-    return matching_comments
-  end
+  #   matching_comments = Comment.where({ :photo_id => self.id })
+
+  #   return matching_comments
+  # end
 
   def likes
     my_id = self.id
@@ -57,7 +68,7 @@ class Photo < ApplicationRecord
 
   def fans
     my_likes = self.likes
-    
+
     array_of_user_ids = Array.new
 
     my_likes.each do |a_like|
